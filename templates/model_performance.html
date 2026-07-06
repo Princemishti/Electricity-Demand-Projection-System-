@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Performance - India Power Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-bg: #1e272e;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: #2c3e50;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #f5f6fa;
+        }
+
+        body.dark-mode .dashboard-container,
+        body.dark-mode .card {
+            background-color: rgba(30, 39, 46, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #f5f6fa;
+        }
+
+        body.dark-mode .form-select {
+            background-color: #2d3436;
+            color: white;
+            border-color: #4a4a4a;
+        }
+
+        body.dark-mode .table {
+            color: #f5f6fa;
+        }
+
+        body.dark-mode .table-striped>tbody>tr:nth-of-type(odd)>* {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: #f5f6fa;
+        }
+
+        body.dark-mode .table-hover>tbody>tr:hover>* {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #f5f6fa;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .dashboard-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            padding: 25px;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Glassmorphic Cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 20px;
+        }
+
+        body.dark-mode .glass-card {
+            background: rgba(30, 39, 46, 0.6);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .card-header {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0 !important;
+            border-bottom: none;
+        }
+
+        body.dark-mode .card-header {
+            background-color: #2f3640;
+        }
+
+        .form-select {
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .best-model-highlight {
+            background-color: rgba(46, 204, 113, 0.15) !important;
+            border-left: 5px solid #2ecc71;
+            font-weight: 600;
+        }
+
+        body.dark-mode .best-model-highlight {
+            background-color: rgba(46, 204, 113, 0.25) !important;
+        }
+
+        /* Loader Overlay */
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 12px;
+            display: none;
+        }
+
+        body.dark-mode .loader-overlay {
+            background: rgba(30, 39, 46, 0.9);
+        }
+
+        .theme-toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-lightning-charge-fill me-2"></i>
+                India Power Analytics
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="bi bi-house-door me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/prediction"><i class="bi bi-cpu me-1"></i> Future Demand Prediction</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/model-performance"><i class="bi bi-bar-chart-steps me-1"></i> Model Performance</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#about"><i class="bi bi-info-circle me-1"></i> About</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="theme-toggle-btn" id="themeToggle" title="Toggle Light/Dark Mode">
+                            <i class="bi bi-moon-stars"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <div class="dashboard-container">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2><i class="bi bi-bar-chart-steps text-primary me-2"></i> ML Model Performance Comparison</h2>
+                    <p class="text-muted">Evaluate and compare regression and time-series model statistics (Accuracy, MAE, MSE, RMSE, MAPE) dynamically for any state/source combination.</p>
+                </div>
+            </div>
+
+            <!-- Configuration Form -->
+            <div class="card glass-card mb-4">
+                <div class="card-body">
+                    <form id="compareForm" class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label for="state" class="form-label font-weight-bold">State / Region</label>
+                            <select class="form-select" id="state" name="state" required>
+                                <option value="All India">All India (Total)</option>
+                                {% for state in states %}
+                                    <option value="{{ state }}">{{ state }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="power_source" class="form-label font-weight-bold">Power Generation Source</label>
+                            <select class="form-select" id="power_source" name="power_source" required>
+                                <option value="All Sources">All Sources (Total Grid)</option>
+                                {% for src in sources %}
+                                    <option value="{{ src }}">{{ src }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100" id="compareBtn">
+                                <i class="bi bi-play-circle-fill me-2"></i>Run Model Comparison
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Content Area (Relative for Loader overlay) -->
+            <div class="position-relative" id="metricsSection">
+                <!-- Loader Overlay -->
+                <div class="loader-overlay" id="loaderOverlay">
+                    <div class="spinner-border text-primary" role="status" style="width: 3.5rem; height: 3.5rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4 class="mt-4">Evaluating ML Models...</h4>
+                    <p class="text-muted small">Running comparative fits for Linear Regression, Random Forest, SVR, and Holt-Winters on the dataset...</p>
+                </div>
+
+                <!-- Placeholder -->
+                <div class="card glass-card text-center py-5" id="resultsPlaceholder">
+                    <div class="card-body">
+                        <i class="bi bi-bar-chart-fill text-muted" style="font-size: 5rem;"></i>
+                        <h4 class="mt-3">Awaiting Comparison Run</h4>
+                        <p class="text-muted">Select a state and generation source, then click <strong>Run Model Comparison</strong> to compare statistics.</p>
+                    </div>
+                </div>
+
+                <!-- Performance Table Card -->
+                <div id="resultsContent" style="display: none;">
+                    <div class="card glass-card mb-4">
+                        <div class="card-header"><i class="bi bi-table me-2"></i> Comparative Model Metrics</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover mb-0 align-middle">
+                                    <thead>
+                                        <tr class="table-dark">
+                                            <th>Model Name</th>
+                                            <th>Accuracy (100-MAPE)</th>
+                                            <th>MAE</th>
+                                            <th>MSE</th>
+                                            <th>RMSE</th>
+                                            <th>MAPE</th>
+                                            <th>R² Score</th>
+                                            <th>Training Time</th>
+                                            <th>Prediction Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="metricsTableBody">
+                                        <!-- Rows injected dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Chart Card -->
+                    <div class="card glass-card">
+                        <div class="card-header"><i class="bi bi-bar-chart-line me-2"></i> Model Accuracy Chart</div>
+                        <div class="card-body">
+                            <div id="comparisonPlot" style="width:100%; height:450px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Theme toggle configuration
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                $('body').addClass('dark-mode');
+                $('#themeToggle i').removeClass('bi-moon-stars').addClass('bi-sun');
+            }
+
+            $('#themeToggle').click(function() {
+                $('body').toggleClass('dark-mode');
+                const isDark = $('body').hasClass('dark-mode');
+                localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+                $('#themeToggle i').toggleClass('bi-moon-stars bi-sun');
+                window.dispatchEvent(new Event('resize'));
+            });
+
+            // Handle Form Submit
+            $('#compareForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Show loader
+                $('#resultsPlaceholder').hide();
+                $('#resultsContent').hide();
+                $('#loaderOverlay').css('display', 'flex');
+
+                const state = $('#state').val();
+                const source = $('#power_source').val();
+
+                $.ajax({
+                    url: '/api/model-performance',
+                    type: 'GET',
+                    data: {
+                        state: state,
+                        power_source: source
+                    },
+                    success: function(response) {
+                        $('#loaderOverlay').hide();
+                        displayComparison(response);
+                    },
+                    error: function(xhr) {
+                        $('#loaderOverlay').hide();
+                        $('#resultsPlaceholder').show();
+                        alert("Error executing model performance metrics.");
+                    }
+                });
+            });
+
+            function displayComparison(data) {
+                $('#resultsContent').fadeIn(300);
+                
+                // Build Table Rows
+                let html = '';
+                const bestModel = data.best_model;
+                
+                for (const [name, stats] of Object.entries(data.metrics)) {
+                    const isBest = name === bestModel;
+                    const highlightClass = isBest ? 'best-model-highlight' : '';
+                    const medalIcon = isBest ? '<i class="bi bi-trophy-fill text-warning me-2" title="Best Model"></i>' : '';
+                    
+                    html += `
+                        <tr class="${highlightClass}">
+                            <td>${medalIcon}<strong>${name}</strong></td>
+                            <td>${stats.accuracy}</td>
+                            <td>${stats.mae}</td>
+                            <td>${stats.mse}</td>
+                            <td>${stats.rmse}</td>
+                            <td>${stats.mape}</td>
+                            <td>${stats.r2}</td>
+                            <td>${stats.training_time}</td>
+                            <td>${stats.prediction_time}</td>
+                        </tr>
+                    `;
+                }
+                
+                $('#metricsTableBody').html(html);
+
+                // Render Chart
+                Plotly.purge('comparisonPlot');
+                const chartData = JSON.parse(data.chart);
+                Plotly.newPlot('comparisonPlot', chartData.data, chartData.layout, {responsive: true});
+                
+                // Trigger window resize to recalculate sizes
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Power Generation Analytics | College Project</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: #333;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .dashboard-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            padding: 25px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .graph-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        #graphImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .insight-card {
+            background-color: var(--light-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .footer {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+        
+        .loading-spinner {
+            color: var(--primary-color);
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .tab-content {
+            padding: 20px 0;
+        }
+        
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .data-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .model-comparison {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .comparison-table {
+            font-size: 0.85rem;
+        }
+        
+        .comparison-table th {
+            font-weight: 600;
+        }
+        
+        .best-model {
+            background-color: #e6f7e6;
+            font-weight: 600;
+        }
+        
+        .plotly-graph {
+            width: 100%;
+            height: 500px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .plotly-warning {
+            display: none;
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        #staticImageContainer {
+            display: none;
+            text-align: center;
+        }
+        
+        .explanation-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .metric-badge {
+            font-size: 0.75rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        
+        .badge-success {
+            background-color: #28a745;
+        }
+        
+        .badge-warning {
+            background-color: #ffc107;
+        }
+        
+        .badge-danger {
+            background-color: #dc3545;
+        }
+        
+        .badge-primary {
+            background-color: #007bff;
+        }
+        
+        .badge-info {
+            background-color: #17a2b8;
+        }
+        
+        .graph-options {
+            margin-bottom: 15px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+            margin-bottom: 15px;
+        }
+        
+        .metric-card[data-metric-type="accuracy"] {
+            border-left: 4px solid var(--bs-success);
+        }
+        
+        .metric-card[data-metric-type="mse"] {
+            border-left: 4px solid var(--bs-primary);
+        }
+        
+        .metric-card[data-metric-type="r2"] {
+            border-left: 4px solid var(--bs-info);
+        }
+        
+        .metric-card[data-metric-type="mae"] {
+            border-left: 4px solid var(--bs-warning);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .metric-card .card-body {
+            padding: 15px;
+        }
+        
+        .metric-card .card-title {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        
+        .metric-card .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .metric-card .metric-label {
+            font-size: 0.8rem;
+        }
+        
+        .mse-card {
+            border-left-color: #6f42c1;
+        }
+        
+        .mae-card {
+            border-left-color: #fd7e14;
+        }
+        
+        .accuracy-card {
+            border-left-color: #20c997;
+        }
+        
+        .rating-badge {
+            font-size: 0.7rem;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+                /* Add these new styles for history section */
+                .history-container {
+            margin-top: 30px;
+        }
+        
+        .history-item {
+            border-left: 3px solid var(--primary-color);
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .history-item:hover {
+            background-color: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .history-item .graph-type {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .history-item .filters {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .history-item .time {
+            font-size: 0.75rem;
+            color: #adb5bd;
+        }
+        
+        .history-item .view-btn {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+        }
+        
+        .history-title {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .metric-card {
+            transition: transform 0.2s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-lightning-charge-fill me-2"></i>
+                India Power Analytics
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/"><i class="bi bi-house-door me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/prediction"><i class="bi bi-cpu me-1"></i> Future Demand Prediction</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/model-performance"><i class="bi bi-bar-chart-steps me-1"></i> Model Performance</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#about"><i class="bi bi-info-circle me-1"></i> About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#methodology"><i class="bi bi-gear me-1"></i> Methodology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <div class="dashboard-container">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2><i class="bi bi-speedometer2 me-2"></i> Power Generation Dashboard</h2>
+                    <p class="text-muted">Interactive visualization of India's power generation data (2013-2023)</p>
+                </div>
+            </div>
+
+            <!-- Quick Stats Row -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="stat-value">{{ stats.years_count }}</div>
+                        <div class="stat-label">Years of Data</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="stat-value">{{ stats.sources_count }}</div>
+                        <div class="stat-label">Power Sources</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="stat-value">{{ stats.states_count }}</div>
+                        <div class="stat-label">States Covered</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="stat-value">{{ stats.total_generation }}</div>
+                        <div class="stat-label">MU Generated</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4">
+                    <!-- Filters Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-funnel me-2"></i>Data Filters
+                        </div>
+                        <div class="card-body">
+                            <form id="filterForm">
+                                <div class="mb-3 graph-options">
+                                    <label for="graph_type" class="form-label">Visualization Type</label>
+                                    <select class="form-select" id="graph_type" name="graph_type">
+                                        <option value="time_series">Time Series</option>
+                                        <option value="bar_chart">Bar Chart</option>
+                                        <option value="pie_chart">pie_chart</option>
+                                        <option value="box_plot">box_plot</option>
+                                        <option value="heatmap">Demand Heatmap</option>
+                                        <option value="prediction">Demand Forecast</option>
+                                    </select>
+                                </div>
+                                <script>
+                                    $(document).ready(function () {
+                                        // Update form visibility based on selected graph type
+                                        $('#graph_type').change(function () {
+                                            const selectedType = $(this).val();
+                                            if (selectedType === 'pie_chart' || selectedType === 'prediction') {
+                                                $('#source').closest('.mb-3').hide(); // Hide source filter for these graphs
+                                            } else {
+                                                $('#source').closest('.mb-3').show(); // Show source filter for other graphs
+                                            }
+                                        }).trigger('change'); // Trigger change on page load to set initial state
+                                    });
+                                </script>
+                                
+                                <ul class="nav nav-tabs mb-3" id="filterTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic-filters" type="button">Basic</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced-filters" type="button">Advanced</button>
+                                    </li>
+                                </ul>
+                                
+                                <div class="tab-content" id="filterTabsContent">
+                                    <div class="tab-pane fade show active" id="basic-filters" role="tabpanel">
+                                        <div class="mb-3">
+                                            <label for="source" class="form-label">Power Source</label>
+                                            <select class="form-select" id="source" name="source">
+                                                <option value="All">All Sources</option>
+                                                {% for source in sources %}
+                                                    <option value="{{ source }}">{{ source }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade" id="advanced-filters" role="tabpanel">
+                                        <div class="mb-3">
+                                            <label for="region" class="form-label">Region</label>
+                                            <select class="form-select" id="region" name="region">
+                                                <option value="All">All Regions</option>
+                                                {% for region in regions %}
+                                                    <option value="{{ region }}">{{ region }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="state" class="form-label">State</label>
+                                            <select class="form-select" id="state" name="state">
+                                                <option value="All">All States</option>
+                                                {% for state in states %}
+                                                    <option value="{{ state }}">{{ state }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="year" class="form-label">Year</label>
+                                                <select class="form-select" id="year" name="year">
+                                                    <option value="All">All Years</option>
+                                                    {% for year in years %}
+                                                        <option value="{{ year }}">{{ year }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="month" class="form-label">Month</label>
+                                                <select class="form-select" id="month" name="month">
+                                                    <option value="All">All Months</option>
+                                                    {% for month in months %}
+                                                        <option value="{{ month }}">{{ month }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 mt-2">
+                                    <i class="bi bi-graph-up me-2"></i>Generate Visualization
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Insights Card -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <i class="bi bi-lightbulb me-2"></i>Key Insights
+                        </div>
+                        <div class="card-body">
+                            <div class="insight-card">
+                                <h6><i class="bi bi-arrow-up-circle text-success me-2"></i>Renewable Growth</h6>
+                                <p class="small">Solar generation has grown {{ stats.renewable_growth }} from 2015-2023</p>
+                            </div>
+                            <div class="insight-card">
+                                <h6><i class="bi bi-thermometer-sun text-warning me-2"></i>Seasonal Patterns</h6>
+                                <p class="small">Highest demand occurs in summer months (April-June)</p>
+                            </div>
+                            <div class="insight-card">
+                                <h6><i class="bi bi-geo-alt text-primary me-2"></i>Regional Variance</h6>
+                                <p class="small">Western region contributes {{ stats.western_region_share }} of total generation</p>
+                            </div>
+                            <div class="insight-card">
+                                <h6><i class="bi bi-lightning-charge text-danger me-2"></i>Peak Demand Trends</h6>
+                                <p class="small">Maximum power demand increased by 8.2% annually since 2019</p>
+                            </div>
+                            <div class="insight-card">
+                                <h6><i class="bi bi-sun text-warning me-2"></i>Solar Adoption</h6>
+                                <p class="small">Solar capacity increased 10x in the last 5 years</p>
+                            </div>
+                            <div class="insight-card">
+                                <h6><i class="bi bi-graph-down text-info me-2"></i>Shortage Analysis</h6>
+                                <p class="small">Power shortage reduced from 4.2% to 0.4% between 2013-2023</p>
+                            </div>
+                            <div class="insight-card">
+                                <h6><i class="bi bi-calendar-check text-success me-2"></i>Seasonal Efficiency</h6>
+                                <p class="small">Thermal plants show 15% higher efficiency in winter months</p>
+                            </div>
+                            <div class="insight-card">
+                                <h6><i class="bi bi-wind text-primary me-2"></i>Wind Generation</h6>
+                                <p class="small">Wind power peaks during monsoon (June-September)</p>
+                            </div>
+                            <div class="insight-card">
+                                <h6><i class="bi bi-clock-history text-secondary me-2"></i>Daily Patterns</h6>
+                                <p class="small">Peak demand typically occurs between 7-9 PM across all regions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-8">
+                    <div class="card graph-container">
+                        <div class="card-header">
+                            <i class="bi bi-bar-chart-line me-2"></i>
+                            <span id="graphTitle">Power Generation Visualization</span>
+                            <div class="form-check form-switch float-end">
+                                <input class="form-check-input" type="checkbox" id="interactiveToggle">
+                                <label class="form-check-label small" for="interactiveToggle">Interactive</label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="loading" class="text-center" style="display: none;">
+                                <div class="spinner-border loading-spinner" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Generating visualization...</p>
+                            </div>
+                            <div id="graphPlaceholder" class="text-center">
+                                <img src="https://via.placeholder.com/600x400?text=Select+parameters+and+click+Generate" 
+                                     class="img-fluid" 
+                                     style="max-height: 400px; opacity: 0.7;">
+                                <p class="mt-3 text-muted">Configure the filters and click "Generate Visualization"</p>
+                            </div>
+                            <div id="staticImageContainer" style="display: none;">
+                                <img id="graphImage" class="img-fluid" style="max-height: 500px;">
+                            </div>
+                            <div id="plotlyGraph" class="plotly-graph"></div>
+                            <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;"></div>
+
+                            <!-- Performance Metrics Section -->
+                            <div class="row mt-4">
+                                <div class="col-md-3">
+                                    <div class="metric-card" data-metric-type="accuracy">
+                                        <div class="card-body">
+                                            <h6 class="card-title"><i class="bi bi-bullseye text-success"></i> Accuracy</h6>
+                                            <div class="metric-value">-</div>
+                                            <div class="metric-label text-muted small">Best Model</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card" data-metric-type="mse">
+                                        <div class="card-body">
+                                            <h6 class="card-title"><i class="bi bi-graph-down text-primary"></i> MSE</h6>
+                                            <div class="metric-value">-</div>
+                                            <div class="metric-label text-muted small">Best Model</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card" data-metric-type="r2">
+                                        <div class="card-body">
+                                            <h6 class="card-title"><i class="bi bi-graph-up text-info"></i> R²</h6>
+                                            <div class="metric-value">-</div>
+                                            <div class="metric-label text-muted small">Best Model</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card" data-metric-type="mae">
+                                        <div class="card-body">
+                                            <h6 class="card-title"><i class="bi bi-rulers text-warning"></i> MAE</h6>
+                                            <div class="metric-value">-</div>
+                                            <div class="metric-label text-muted small">Best Model</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rating Scale Section -->
+                            <div class="rating-scale mt-4" style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h6 style="color: #333; margin-bottom: 15px;">
+                                    <i class="bi bi-star-fill me-2" style="color: #f1c40f;"></i>
+                                    Rating Scale
+                                </h6>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="rating-item">
+                                        <span class="badge bg-success">Excellent</span>
+                                        <span class="text-muted ms-2">(90-100%)</span>
+                                    </div>
+                                    <div class="rating-item">
+                                        <span class="badge bg-primary">Good</span>
+                                        <span class="text-muted ms-2">(75-89%)</span>
+                                    </div>
+                                    <div class="rating-item">
+                                        <span class="badge bg-warning">Fair</span>
+                                        <span class="text-muted ms-2">(50-74%)</span>
+                                    </div>
+                                    <div class="rating-item">
+                                        <span class="badge bg-danger">Poor</span>
+                                        <span class="text-muted ms-2">(<50%)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Metrics Guide Section -->
+                            <div class="metrics-guide mt-4">
+                                <div class="alert alert-info">
+                                    <h6><i class="bi bi-info-circle me-2"></i>Metrics Guide</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Accuracy:</strong> Percentage of correct predictions (higher is better)</li>
+                                        <li><strong>MSE (Mean Squared Error):</strong> Average squared difference between predictions and actual values (lower is better)</li>
+                                        <li><strong>R² (R-squared):</strong> Proportion of variance explained by the model (closer to 1 is better)</li>
+                                        <li><strong>MAE (Mean Absolute Error):</strong> Average absolute difference between predictions and actual values (lower is better)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div id="explanationContainer" class="explanation-container" style="display: none;"></div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="data-info" id="dataInfo">Select filters to view data information</small>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button id="downloadBtn" class="btn btn-sm btn-outline-primary" style="display: none;">
+                                        <i class="bi bi-download me-1"></i>Download Image
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <!-- Add this after the Insights Card -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="bi bi-clock-history me-2"></i>Your Recent Activity
+        </div>
+        <div class="card-body">
+            {% if history %}
+                <div class="history-container">
+                    {% for item in history %}
+                        <div class="history-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="graph-type">
+                                        <i class="bi bi-{{ 
+                                            'bar-chart-line' if item.graph_type == 'bar_chart' 
+                                            else 'pie-chart' if item.graph_type == 'pie_chart' 
+                                            else 'box' if item.graph_type == 'box_plot' 
+                                            else 'calendar-heat' if item.graph_type == 'heatmap' 
+                                            else 'graph-up-arrow' if item.graph_type == 'prediction' 
+                                            else 'graph-up' 
+                                        }} me-2"></i>
+                                        {{ item.graph_type|replace('_', ' ')|title }}
+                                    </div>
+                                    <div class="filters">
+                                        {% if item.filters.source and item.filters.source != 'All' %}
+                                            <span class="badge bg-primary me-1">{{ item.filters.source }}</span>
+                                        {% endif %}
+                                        {% if item.filters.region and item.filters.region != 'All' %}
+                                            <span class="badge bg-secondary me-1">{{ item.filters.region }}</span>
+                                        {% endif %}
+                                        {% if item.filters.state and item.filters.state != 'All' %}
+                                            <span class="badge bg-info me-1">{{ item.filters.state }}</span>
+                                        {% endif %}
+                                        {% if item.filters.year and item.filters.year != 'All' %}
+                                            <span class="badge bg-success me-1">{{ item.filters.year }}</span>
+                                        {% endif %}
+                                        {% if item.filters.month and item.filters.month != 'All' %}
+                                            <span class="badge bg-warning me-1">{{ item.filters.month }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="time">
+                                        <i class="bi bi-clock me-1"></i>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('static', filename=item.graph_path.replace('\\', '/')) }}" 
+                                   class="btn btn-sm btn-outline-primary view-btn" 
+                                   target="_blank">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-info-circle fs-4"></i>
+                    <p class="mt-2">No recent activity found</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+        <!-- About Section -->
+        <div class="dashboard-container mt-4" id="about">
+            <h3><i class="bi bi-info-circle me-2"></i>About This Project</h3>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h5>Project Overview</h5>
+                    <p>This interactive dashboard analyzes India's power generation data from 2013-2023 across different sources (thermal, hydro, solar, wind, etc.) and regions.</p>
+                    <p>The system provides visual analytics tools to understand generation patterns, regional distributions, and predict future demand using multiple machine learning models with performance comparison.</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Key Features</h5>
+                    <ul>
+                        <li>Interactive time-series visualizations with Plotly</li>
+                        <li>Comparative analysis by source/region</li>
+                        <li>Demand forecasting with 4 ML models</li>
+                        <li>Side-by-side model performance metrics</li>
+                        <li>Responsive design for all devices</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Methodology Section -->
+        <div class="dashboard-container mt-4" id="methodology">
+            <h3><i class="bi bi-gear me-2"></i>Methodology</h3>
+            <div class="accordion mt-3" id="methodologyAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#dataCollection">
+                            Data Collection & Cleaning
+                        </button>
+                    </h2>
+                    <div id="dataCollection" class="accordion-collapse collapse show" data-bs-parent="#methodologyAccordion">
+                        <div class="accordion-body">
+                            <p>Data was sourced from the Central Electricity Authority of India's public records. The datasets include:</p>
+                            <ul>
+                                <li>Daily generation by source (2013-2023)</li>
+                                <li>State-wise demand and supply metrics</li>
+                            </ul>
+                            <p>Data cleaning included handling missing values, standardizing units, and removing aggregate rows.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#analysis">
+                            Analysis Techniques
+                        </button>
+                    </h2>
+                    <div id="analysis" class="accordion-collapse collapse" data-bs-parent="#methodologyAccordion">
+                        <div class="accordion-body">
+                            <p>The project employs several analytical approaches:</p>
+                            <ul>
+                                <li><strong>Descriptive Analytics:</strong> Time series decomposition, regional comparisons</li>
+                                <li><strong>Predictive Modeling:</strong> 
+                                    <ul>
+                                        <li>Linear Regression</li>
+                                        <li>Random Forest (200 estimators)</li>
+                                        <li>Support Vector Regression (RBF kernel)</li>
+                                        <li>Holt-Winters Exponential Smoothing</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Model Evaluation:</strong> Accuracy, MSE and MAE metrics</li>
+                                <li><strong>Comparative Analysis:</strong> Renewable vs fossil fuel generation trends</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#techStack">
+                            Technology Stack
+                        </button>
+                    </h2>
+                    <div id="techStack" class="accordion-collapse collapse" data-bs-parent="#methodologyAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h6>Backend</h6>
+                                    <ul>
+                                        <li>Python 3.11</li>
+                                        <li>Flask</li>
+                                        <li>Pandas/Numpy</li>
+                                        <li>Scikit-learn</li>
+                                        <li>Statsmodels</li>
+                                        <li>Plotly</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6>Frontend</h6>
+                                    <ul>
+                                        <li>HTML5/CSS3</li>
+                                        <li>Bootstrap 5</li>
+                                        <li>JavaScript/jQuery</li>
+                                        <li>Plotly.js</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6>Visualization</h6>
+                                    <ul>
+                                        <li>Matplotlib/Seaborn</li>
+                                        <li>Plotly</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>India Power Generation Analytics</h5>
+                    <p>A comprehensive analysis of India's power sector (2013-2023)</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Documentation</a></li>
+                        <li><a href="#" class="text-white">Source Code</a></li>
+                        <li><a href="#" class="text-white">Dataset</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Team</h5>
+                    <ul class="list-unstyled">
+                        <li>Data Science Project</li>
+                        <li>Computer Science Department</li>
+                        <li>University Name</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <small>© 2023 Power Analytics Project | Academic Use Only</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Function to generate visualization
+            function generateVisualization() {
+                const isInteractive = $('#interactiveToggle').is(':checked');
+                
+                // Show loading state
+                $('#loading').show();
+                $('#staticImageContainer').hide();
+                $('#plotlyGraph').hide();
+                $('#graphPlaceholder').hide();
+                $('#errorMessage').hide();
+                
+                // Get form data and explicitly add interactive parameter
+                const formData = new FormData($('#filterForm')[0]);
+                formData.append('interactive', isInteractive);
+                
+                // Make AJAX request
+                $.ajax({
+                    url: '/generate_graph',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#loading').hide();
+                        
+                        if (response.error) {
+                            $('#errorMessage').html(`<i class="bi bi-exclamation-triangle"></i> ${response.error}`).show();
+                            return;
+                        }
+                        
+                        try {
+                            // Handle interactive plot
+                            if (response.interactive && response.plotly_json) {
+                                $('#plotlyGraph').show();
+                                $('#staticImageContainer').hide();
+                                
+                                // Parse the Plotly JSON data
+                                const plotData = JSON.parse(response.plotly_json);
+                                
+                                // Clear any existing plots
+                                Plotly.purge('plotlyGraph');
+                                
+                                // Create new plot with config
+                                Plotly.newPlot('plotlyGraph', plotData.data, plotData.layout, {
+                                    responsive: true,
+                                    displayModeBar: true,
+                                    displaylogo: false,
+                                    modeBarButtonsToAdd: ['toImage'],
+                                    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                                    toImageButtonOptions: {
+                                        format: 'png',
+                                        filename: 'power_generation_plot',
+                                        height: 800,
+                                        width: 1200,
+                                        scale: 2
+                                    }
+                                }).then(function() {
+                                    // After plot is created, trigger a window resize
+                                    window.dispatchEvent(new Event('resize'));
+                                }).catch(function(err) {
+                                    console.error('Error creating plot:', err);
+                                    $('#errorMessage').html('<i class="bi bi-exclamation-triangle"></i> Error creating interactive plot. Please try again or switch to static mode.').show();
+                                });
+                            } else {
+                                // Handle static plot
+                                if (response.image) {
+                                    $('#staticImageContainer').show();
+                                    $('#plotlyGraph').hide();
+                                    $('#graphImage').attr('src', 'data:image/png;base64,' + response.image);
+                                } else {
+                                    throw new Error('No image data received for static plot');
+                                }
+                            }
+                            
+                            // Show explanation if available
+                            if (response.explanation) {
+                                $('#explanationContainer').html(response.explanation).show();
+                            }
+
+                            // Show model metrics if available
+                            if (response.model_metrics) {
+                                updateMetricsDisplay(response.model_metrics);
+                            }
+                            
+                            $('#downloadBtn').show();
+                            updateDataInfo();
+                        } catch (error) {
+                            console.error('Error handling visualization:', error);
+                            $('#errorMessage').html(`<i class="bi bi-exclamation-triangle"></i> Error displaying visualization: ${error.message}`).show();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $('#loading').hide();
+                        $('#errorMessage').html(`<i class="bi bi-exclamation-triangle"></i> Failed to generate visualization: ${error}`).show();
+                    }
+                });
+            }
+
+            // Function to update metrics display
+            function updateMetricsDisplay(metrics) {
+                if (!metrics) return;
+                
+                // Find the best model based on accuracy
+                let bestModel = null;
+                let bestAccuracy = -1;
+                
+                for (const [modelName, modelMetrics] of Object.entries(metrics)) {
+                    if (modelMetrics.accuracy > bestAccuracy) {
+                        bestAccuracy = modelMetrics.accuracy;
+                        bestModel = { name: modelName, metrics: modelMetrics };
+                    }
+                }
+                
+                if (bestModel) {
+                    // Update metrics cards
+                    $('.metric-card').each(function() {
+                        const $card = $(this);
+                        const metricType = $card.data('metric-type');
+                        
+                        if (bestModel.metrics[metricType]) {
+                            $card.find('.metric-value').text(
+                                metricType === 'accuracy' 
+                                    ? `${bestModel.metrics[metricType].toFixed(1)}%`
+                                    : bestModel.metrics[metricType].toFixed(4)
+                            );
+                            $card.find('.metric-label').text(`${bestModel.name}`);
+                        }
+                    });
+                }
+            }
+
+            // Handle form submission
+            $('#filterForm').on('submit', function(e) {
+                e.preventDefault();
+                generateVisualization();
+            });
+
+            // Handle interactive toggle
+            $('#interactiveToggle').change(function() {
+                if ($('#filterForm').find('select').val()) {
+                    generateVisualization();
+                }
+            });
+
+            // Update data info when filters change
+            function updateDataInfo() {
+                const source = $('#source').val();
+                const region = $('#region').val();
+                const year = $('#year').val();
+                const month = $('#month').val();
+                const state = $('#state').val();
+                const graphType = $('#graph_type option:selected').text();
+                
+                let info = `Viewing: ${graphType} | `;
+                info += source === 'All' ? 'All sources' : source;
+                info += region === 'All' ? '' : ` in ${region}`;
+                info += state === 'All' ? '' : ` (${state})`;
+                info += year === 'All' ? '' : ` for ${year}`;
+                info += month === 'All' ? '' : `-${month}`;
+                
+                $('#dataInfo').text(info);
+                $('#graphTitle').text(`${graphType} Visualization`);
+            }
+            
+            // Function to update state dropdown based on selected source
+            function updateStateDropdown(source) {
+                $.ajax({
+                    url: '/get_states',
+                    type: 'POST',
+                    data: { source: source },
+                    success: function(response) {
+                        const stateSelect = $('#state');
+                        stateSelect.empty();
+                        stateSelect.append('<option value="All">All States</option>');
+                        
+                        response.states.forEach(function(state) {
+                            stateSelect.append(`<option value="${state}">${state}</option>`);
+                        });
+                    },
+                    error: function() {
+                        console.error('Failed to fetch states');
+                    }
+                });
+            }
+
+            // Handle window resize for Plotly
+            window.addEventListener('resize', function() {
+                Plotly.Plots.resize('plotlyGraph');
+            });
+
+            // Update states when source changes
+            $('#source').change(function() {
+                const selectedSource = $(this).val();
+                updateStateDropdown(selectedSource);
+            });
+
+            // Initial state update
+            updateStateDropdown($('#source').val());
+            
+            // Update form when graph type changes
+            $('#graph_type').change(function() {
+                const type = $(this).val();
+                
+                // Show/hide relevant filters
+                if (type === 'prediction' || type === 'heatmap') {
+                    $('#source').closest('.mb-3').hide();
+                } else {
+                    $('#source').closest('.mb-3').show();
+                }
+                
+                updateDataInfo();
+            });
+            
+            // Initialize
+            updateDataInfo();
+            
+            // Update filters when tab changes
+            $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function() {
+                updateDataInfo();
+            });
+
+            // Check Plotly availability on page load
+            $.get('/check_plotly', function(response) {
+                if (!response.plotly_available) {
+                    $('#interactiveToggle').prop('disabled', true);
+                    $('.plotly-warning').show();
+                }
+            });
+
+            // Handle download button click
+            $('#downloadBtn').click(function() {
+                // Check if we have an interactive plot
+                if ($('#plotlyGraph').is(':visible')) {
+                    // For interactive plots, use Plotly's toImage
+                    Plotly.toImage('plotlyGraph', {
+                        format: 'png',
+                        height: 800,
+                        width: 1200,
+                        scale: 2
+                    }).then(function(dataUrl) {
+                        downloadImage(dataUrl);
+                    });
+                } else if ($('#staticImageContainer').is(':visible')) {
+                    // For static images, use the existing image
+                    const imageData = $('#graphImage').attr('src');
+                    downloadImage(imageData);
+                }
+            });
+
+            // Function to handle image download
+            function downloadImage(imageData) {
+                $.ajax({
+                    url: '/download_graph',
+                    type: 'POST',
+                    data: { image_data: imageData },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function(response) {
+                        // Create a blob URL and trigger download
+                        const blob = new Blob([response], { type: 'image/png' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = 'power_generation_plot.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Download failed:', error);
+                        $('#errorMessage').html('<i class="bi bi-exclamation-triangle"></i> Failed to download image').show();
+                    }
+                });
+            }
+        });
+    </script>
+    <div id="errorMessage" class="alert alert-warning mt-3" style="display: none;">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        <span id="errorText">The selected source is not available for the chosen state and year.</span>
+    </div>
+</body>
+</html>
+
+
+</div>

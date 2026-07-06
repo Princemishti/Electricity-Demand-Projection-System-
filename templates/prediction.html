@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Demand Prediction - India Power Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-bg: #1e272e;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: #2c3e50;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #f5f6fa;
+        }
+
+        body.dark-mode .dashboard-container,
+        body.dark-mode .card,
+        body.dark-mode .modal-content {
+            background-color: rgba(30, 39, 46, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #f5f6fa;
+        }
+
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background-color: #2d3436;
+            color: white;
+            border-color: #4a4a4a;
+        }
+
+        body.dark-mode .list-group-item {
+            background-color: rgba(45, 52, 54, 0.5);
+            color: #dfe6e9;
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode .text-muted {
+            color: #a4b0be !important;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .dashboard-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            padding: 25px;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        body.dark-mode .glass-card {
+            background: rgba(30, 39, 46, 0.6);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .card-header {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0 !important;
+            border-bottom: none;
+        }
+
+        body.dark-mode .card-header {
+            background-color: #2f3640;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        /* Animated Statistics */
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, var(--primary-color), #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse 2.5s infinite;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .insight-card {
+            background-color: rgba(52, 152, 219, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .insight-card:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            transform: translateX(5px);
+        }
+
+        /* Loader Overlay */
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 12px;
+            display: none;
+        }
+
+        body.dark-mode .loader-overlay {
+            background: rgba(30, 39, 46, 0.9);
+        }
+
+        .progress {
+            width: 60%;
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .theme-toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0 10px;
+        }
+
+        /* Chart container */
+        .chart-tab-container {
+            min-height: 450px;
+            position: relative;
+        }
+
+        /* History revisited sidebar */
+        .history-list-item {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .history-list-item:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-lightning-charge-fill me-2"></i>
+                India Power Analytics
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="bi bi-house-door me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/prediction"><i class="bi bi-cpu me-1"></i> Future Demand Prediction</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/model-performance"><i class="bi bi-bar-chart-steps me-1"></i> Model Performance</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#about"><i class="bi bi-info-circle me-1"></i> About</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="theme-toggle-btn" id="themeToggle" title="Toggle Light/Dark Mode">
+                            <i class="bi bi-moon-stars"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <div class="dashboard-container">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2><i class="bi bi-cpu-fill text-primary me-2"></i> Future Demand Forecasting Module</h2>
+                    <p class="text-muted">Generate interactive, machine-learning projections for future electricity demand using historical patterns (2013-2023).</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Filters Column -->
+                <div class="col-lg-4 col-md-5">
+                    <!-- Filters Card -->
+                    <div class="card glass-card">
+                        <div class="card-header"><i class="bi bi-sliders me-2"></i> Forecast Parameters</div>
+                        <div class="card-body">
+                            <form id="forecastForm">
+                                <div class="mb-3">
+                                    <label for="state" class="form-label">State / Region</label>
+                                    <select class="form-select" id="state" name="state" required>
+                                        <option value="All India">All India (Total)</option>
+                                        {% for state in states %}
+                                            <option value="{{ state }}">{{ state }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="power_source" class="form-label">Power Generation Source</label>
+                                    <select class="form-select" id="power_source" name="power_source" required>
+                                        <option value="All Sources">All Sources (Total Grid)</option>
+                                        {% for src in sources %}
+                                            <option value="{{ src }}">{{ src }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="forecast_period" class="form-label">Forecast Period</label>
+                                    <select class="form-select" id="forecast_period" name="forecast_period" required>
+                                        <option value="Next Month">Next Month</option>
+                                        <option value="Next 3 Months">Next 3 Months</option>
+                                        <option value="Next 6 Months">Next 6 Months</option>
+                                        <option value="Next Year">Next Year</option>
+                                        <option value="Custom">Custom Horizon</option>
+                                    </select>
+                                </div>
+
+                                <!-- Custom date selector (hidden by default) -->
+                                <div class="row mb-3" id="custom-date-container" style="display:none;">
+                                    <div class="col-6">
+                                        <label for="year" class="form-label">Target Year</label>
+                                        <select class="form-select" id="year" name="year">
+                                            {% for y in years %}
+                                                <option value="{{ y }}">{{ y }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="month" class="form-label">Target Month</label>
+                                        <select class="form-select" id="month" name="month">
+                                            {% for m in months %}
+                                                <option value="{{ m }}">{{ m }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 mt-2" id="predictBtn">
+                                    <i class="bi bi-calculator-fill me-2"></i>Predict Future Demand
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Prediction History Card -->
+                    <div class="card glass-card">
+                        <div class="card-header"><i class="bi bi-clock-history me-2"></i> Prediction History</div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush" id="historyList" style="max-height: 350px; overflow-y: auto;">
+                                {% if history %}
+                                    {% for item in history %}
+                                        <div class="list-group-item history-list-item p-3" data-id="{{ item.id }}">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1 text-primary">{{ item.state }}</h6>
+                                                <small class="text-muted">{{ item.forecast_period }}</small>
+                                            </div>
+                                            <p class="mb-1 small"><strong>Source:</strong> {{ item.power_source }}</p>
+                                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                                <span class="badge bg-secondary">{{ item.best_model_used }}</span>
+                                                <span class="badge bg-success">Acc: {{ item.accuracy|round(1) }}%</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else: %}
+                                    <div class="p-3 text-center text-muted small">No previous predictions recorded.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prediction Output Column -->
+                <div class="col-lg-8 col-md-7 position-relative" id="resultsSection">
+                    <!-- Glassmorphic Loading Overlay -->
+                    <div class="loader-overlay" id="loaderOverlay">
+                        <div class="spinner-border text-primary" role="status" style="width: 3.5rem; height: 3.5rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h4 class="mt-4" id="loaderText">Starting ML Engines...</h4>
+                        <p class="text-muted small">Training Linear Regression, SVR, Holt-Winters, and Random Forest regressors...</p>
+                        <div class="progress w-75">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" id="loaderProgress"></div>
+                        </div>
+                    </div>
+
+                    <!-- Results Placeholder -->
+                    <div class="card glass-card text-center py-5" id="resultsPlaceholder">
+                        <div class="card-body">
+                            <i class="bi bi-cpu text-muted" style="font-size: 5rem;"></i>
+                            <h4 class="mt-3">Awaiting Forecasting Trigger</h4>
+                            <p class="text-muted">Configure the parameters in the left sidebar and click <strong>Predict Future Demand</strong> to run comparative models and visualize future predictions.</p>
+                        </div>
+                    </div>
+
+                    <!-- Results Content (hidden until loaded) -->
+                    <div id="resultsContent" style="display: none;">
+                        <!-- Animated Stats Row -->
+                        <div class="row">
+                            <div class="col-6 col-lg-3">
+                                <div class="card glass-card stat-card">
+                                    <div class="stat-value" id="resDemand">-</div>
+                                    <div class="stat-label">Predicted Demand</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="card glass-card stat-card">
+                                    <div class="stat-value" id="resConfidence">-</div>
+                                    <div class="stat-label">Model Confidence</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="card glass-card stat-card">
+                                    <div class="stat-value" id="resGrowth">-</div>
+                                    <div class="stat-label">Expected Growth</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="card glass-card stat-card">
+                                    <div class="stat-value" id="resTrend">-</div>
+                                    <div class="stat-label">Grid Trend</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Peak / lowest month cards -->
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <div class="alert alert-success d-flex align-items-center" role="alert">
+                                    <i class="bi bi-graph-up-arrow me-2" style="font-size: 1.5rem;"></i>
+                                    <div>
+                                        <strong>Expected Peak Load Month: </strong> <span id="resPeakMonth">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                    <i class="bi bi-graph-down-arrow me-2" style="font-size: 1.5rem;"></i>
+                                    <div>
+                                        <strong>Expected Lowest Load Month: </strong> <span id="resLowestMonth">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts and Insights Card -->
+                        <div class="card glass-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-bar-chart-line-fill me-2"></i> Forecast Graphs & Projections</span>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-outline-light btn-sm" id="exportPDF" title="Export Prediction Report (PDF)">
+                                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                                    </button>
+                                    <button class="btn btn-outline-light btn-sm" id="exportCSV" title="Export Prediction Data (CSV)">
+                                        <i class="bi bi-filetype-csv me-1"></i> CSV
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body chart-tab-container">
+                                <!-- Navigation tabs -->
+                                <ul class="nav nav-tabs mb-3" id="chartTabs" role="tablist">
+                                    <li class="nav-item">
+                                        <button class="nav-link active" id="timeline-tab" data-bs-toggle="tab" data-bs-target="#tab-timeline" type="button" role="tab">Timeline & Bounds</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link" id="yearly-tab" data-bs-toggle="tab" data-bs-target="#tab-yearly" type="button" role="tab">Yearly Compare</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#tab-monthly" type="button" role="tab">Monthly Seasonality</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link" id="state-tab" data-bs-toggle="tab" data-bs-target="#tab-state" type="button" role="tab">State Rankings</button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link" id="source-tab" data-bs-toggle="tab" data-bs-target="#tab-source" type="button" role="tab">Source Shares</button>
+                                    </li>
+                                </ul>
+
+                                <!-- Tab panes -->
+                                <div class="tab-content" id="chartTabsContent">
+                                    <div class="tab-pane fade show active" id="tab-timeline" role="tabpanel">
+                                        <div id="timelinePlot" style="width:100%; height:400px;"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="tab-yearly" role="tabpanel">
+                                        <div id="yearlyPlot" style="width:100%; height:400px;"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="tab-monthly" role="tabpanel">
+                                        <div id="monthlyPlot" style="width:100%; height:400px;"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="tab-state" role="tabpanel">
+                                        <div id="statePlot" style="width:100%; height:400px;"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="tab-source" role="tabpanel">
+                                        <div id="sourcePlot" style="width:100%; height:400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Insights Card -->
+                        <div class="card glass-card">
+                            <div class="card-header"><i class="bi bi-lightbulb-fill text-warning me-2"></i> Dynamic AI-Generated Insights</div>
+                            <div class="card-body">
+                                <div id="insightsContainer">
+                                    <!-- Insights list injected dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Explanatory Footer -->
+                        <div class="text-center text-muted mb-4 small">
+                            <i class="bi bi-info-circle me-1"></i> <span id="resExplanation"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden download link helper -->
+    <a id="downloadHelper" style="display:none;"></a>
+
+    <script>
+        // Global variables to store active forecast and metrics
+        let activePredictionId = null;
+        let activeForecastData = null;
+
+        $(document).ready(function() {
+            // Theme toggle configuration
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                $('body').addClass('dark-mode');
+                $('#themeToggle i').removeClass('bi-moon-stars').addClass('bi-sun');
+            }
+
+            $('#themeToggle').click(function() {
+                $('body').toggleClass('dark-mode');
+                const isDark = $('body').hasClass('dark-mode');
+                localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+                $('#themeToggle i').toggleClass('bi-moon-stars bi-sun');
+                
+                // Trigger window resize to force Plotly to redraw with correct themes
+                window.dispatchEvent(new Event('resize'));
+            });
+
+            // Toggle custom date selection
+            $('#forecast_period').change(function() {
+                if ($(this).val() === 'Custom') {
+                    $('#custom-date-container').slideDown(250);
+                } else {
+                    $('#custom-date-container').slideUp(250);
+                }
+            }).trigger('change');
+
+            // Handle Predict Form Submit
+            $('#forecastForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Show loader with progress steps
+                $('#resultsPlaceholder').hide();
+                $('#resultsContent').hide();
+                $('#loaderOverlay').css('display', 'flex');
+                
+                updateProgress(15, "Parsing inputs & loading series...");
+                
+                setTimeout(() => updateProgress(40, "Fitting models (Linear, SVR, Forest)..."), 400);
+                setTimeout(() => updateProgress(65, "Calculating RMSE, R² & MAPE metrics..."), 800);
+                setTimeout(() => updateProgress(85, "Rendering interactive timeline charts..."), 1200);
+
+                $.ajax({
+                    url: '/api/predict',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        updateProgress(100, "Forecasting Complete!");
+                        activePredictionId = response.id;
+                        setTimeout(() => {
+                            $('#loaderOverlay').hide();
+                            displayResults(response);
+                            // Refresh prediction history list
+                            loadHistoryList();
+                        }, 500);
+                    },
+                    error: function(xhr) {
+                        $('#loaderOverlay').hide();
+                        $('#resultsPlaceholder').show();
+                        alert(xhr.responseJSON?.error || "Error executing forecasting model. Please check logs.");
+                    }
+                });
+            });
+
+            // Handle history item load click
+            $(document).on('click', '.history-list-item', function() {
+                const predId = $(this).data('id');
+                loadPredictionFromHistory(predId);
+            });
+
+            // Helper to update progress bar
+            function updateProgress(value, text) {
+                $('#loaderProgress').css('width', value + '%').attr('aria-valuenow', value);
+                $('#loaderText').text(text);
+            }
+
+            // Display forecasting results
+            function displayResults(data) {
+                $('#resultsContent').fadeIn(300);
+                
+                // Stats Card Values
+                $('#resDemand').text(data.predicted_demand);
+                $('#resConfidence').text(data.confidence);
+                $('#resGrowth').text(data.expected_growth);
+                $('#resTrend').text(data.trend);
+                
+                // Peak/lowest values
+                $('#resPeakMonth').text(data.peak_month);
+                $('#resLowestMonth').text(data.lowest_month);
+                
+                // Explanation text
+                $('#resExplanation').text(data.explanation);
+
+                // Insights List
+                let insightsHtml = '';
+                data.insights.forEach(function(insight) {
+                    insightsHtml += `<div class="insight-card"><i class="bi bi-lightbulb-fill text-warning me-2"></i> ${insight}</div>`;
+                });
+                $('#insightsContainer').html(insightsHtml);
+
+                // Cache active forecast data for CSV/PDF exports
+                activeForecastData = data;
+
+                // Render Plots
+                Plotly.purge('timelinePlot');
+                Plotly.purge('yearlyPlot');
+                Plotly.purge('monthlyPlot');
+                Plotly.purge('statePlot');
+                Plotly.purge('sourcePlot');
+
+                Plotly.newPlot('timelinePlot', JSON.parse(data.charts.timeline).data, JSON.parse(data.charts.timeline).layout, {responsive: true});
+                Plotly.newPlot('yearlyPlot', JSON.parse(data.charts.yearly_comparison).data, JSON.parse(data.charts.yearly_comparison).layout, {responsive: true});
+                Plotly.newPlot('monthlyPlot', JSON.parse(data.charts.monthly_trend).data, JSON.parse(data.charts.monthly_trend).layout, {responsive: true});
+                Plotly.newPlot('statePlot', JSON.parse(data.charts.state_comparison).data, JSON.parse(data.charts.state_comparison).layout, {responsive: true});
+                Plotly.newPlot('sourcePlot', JSON.parse(data.charts.source_contribution).data, JSON.parse(data.charts.source_contribution).layout, {responsive: true});
+
+                // Trigger window resize to force size calculations
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+            }
+
+            // Load Prediction list from DB API
+            function loadHistoryList() {
+                $.get('/api/history', function(response) {
+                    let html = '';
+                    if (response.history.length > 0) {
+                        response.history.forEach(function(item) {
+                            html += `
+                                <div class="list-group-item history-list-item p-3" data-id="${item.id}">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1 text-primary">${item.state}</h6>
+                                        <small class="text-muted">${item.forecast_period}</small>
+                                    </div>
+                                    <p class="mb-1 small"><strong>Source:</strong> ${item.power_source}</p>
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <span class="badge bg-secondary">${item.best_model_used}</span>
+                                        <span class="badge bg-success">Acc: ${item.accuracy.toFixed(1)}%</span>
+                                    </div>
+                                </div>`;
+                        });
+                        activePredictionId = response.history[0].id;
+                    } else {
+                        html = '<div class="p-3 text-center text-muted small">No previous predictions recorded.</div>';
+                    }
+                    $('#historyList').html(html);
+                });
+            }
+
+            // Load a past prediction parameters and trigger forecasting refresh
+            function loadPredictionFromHistory(predId) {
+                // Show loader
+                $('#resultsPlaceholder').hide();
+                $('#resultsContent').hide();
+                $('#loaderOverlay').css('display', 'flex');
+                updateProgress(50, "Fetching historical forecast data...");
+
+                // Find parameters in history
+                $.get('/api/history', function(response) {
+                    const item = response.history.find(h => String(h.id) === String(predId));
+                    if (item) {
+                        activePredictionId = item.id;
+                        
+                        // Set filter values in UI matching the history
+                        $('#state').val(item.state);
+                        $('#power_source').val(item.power_source);
+                        $('#forecast_period').val(item.forecast_period);
+                        
+                        if (item.forecast_period === 'Custom') {
+                            $('#custom-date-container').show();
+                            $('#year').val(item.year);
+                            $('#month').val(item.month);
+                        } else {
+                            $('#custom-date-container').hide();
+                        }
+
+                        // Re-run predict API to fetch plots and results
+                        $.ajax({
+                            url: '/api/predict',
+                            type: 'POST',
+                            data: {
+                                state: item.state,
+                                power_source: item.power_source,
+                                forecast_period: item.forecast_period,
+                                year: item.year,
+                                month: item.month
+                            },
+                            success: function(response) {
+                                $('#loaderOverlay').hide();
+                                displayResults(response);
+                            },
+                            error: function() {
+                                $('#loaderOverlay').hide();
+                                $('#resultsPlaceholder').show();
+                                alert("Failed to reload past prediction.");
+                            }
+                        });
+                    } else {
+                        $('#loaderOverlay').hide();
+                    }
+                });
+            }
+
+            // Export to CSV
+            $('#exportCSV').click(function() {
+                if (!activeForecastData) return;
+                
+                // Get timeline Plot data to export predictions
+                const timeline = JSON.parse(activeForecastData.charts.timeline);
+                const forecastTrace = timeline.data.find(t => t.name === 'Predicted Forecast');
+                const histTrace = timeline.data.find(t => t.name === 'Historical (Last 3Y)');
+                
+                let csvContent = "data:text/csv;charset=utf-8,Type,Date,Demand (MU)\n";
+                
+                if (histTrace) {
+                    for(let i=0; i<histTrace.x.length; i++) {
+                        csvContent += `Historical,${histTrace.x[i]},${histTrace.y[i]}\n`;
+                    }
+                }
+                
+                if (forecastTrace) {
+                    for(let i=0; i<forecastTrace.x.length; i++) {
+                        csvContent += `Forecasted,${forecastTrace.x[i]},${forecastTrace.y[i]}\n`;
+                    }
+                }
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.getElementById("downloadHelper");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `Electricity_Demand_Forecast_${$('#state').val().replace(/ /g, '_')}.csv`);
+                link.click();
+            });
+
+            // Export to PDF Report
+            $('#exportPDF').click(function() {
+                if (!activePredictionId) {
+                    alert("Please run a prediction first before exporting the report.");
+                    return;
+                }
+                window.location.href = `/api/download-report?id=${activePredictionId}`;
+            });
+
+            // Resize Plotly charts on tab change
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                window.dispatchEvent(new Event('resize'));
+            });
+
+            // Initial load of history on page load
+            loadHistoryList();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

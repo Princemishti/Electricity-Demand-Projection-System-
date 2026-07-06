@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Databases and keys
+instance/power_analytics.db
+instance/secret_key.txt
+
+# User generated uploads / graphs
+static/user_graphs/*
+!static/user_graphs/.gitkeep
+
+# Environments
+.env
+.venv
+venv/
+ENV/
+env/
