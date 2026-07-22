@@ -12,3 +12,5 @@ statsmodels
 prophet
 plotly
 python-dotenv==1.0.0
+reportlab
+gunicorn

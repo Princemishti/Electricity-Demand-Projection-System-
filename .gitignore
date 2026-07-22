@@ -18,3 +18,4 @@ static/user_graphs/*
 venv/
 ENV/
 env/
+.idea/
