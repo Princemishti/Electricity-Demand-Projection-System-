@@ -18,7 +18,7 @@ USE_SQLITE = False
 
 def get_connection():
     """
-    Get a database connection. Tries PostgreSQL first;
+    Get a database connection. Tries PostgreSQL (via DATABASE_URL or DB_CONFIG) first;
     falls back to SQLite on connection failure.
     """
     global USE_SQLITE
@@ -27,6 +27,22 @@ def get_connection():
         conn = sqlite3.connect('instance/power_analytics.db')
         return conn, True
     
+    # 1. Try cloud DATABASE_URL if available (e.g. Render, Railway, Supabase)
+    db_url = os.environ.get('DATABASE_URL')
+    if db_url:
+        try:
+            if db_url.startswith("postgres://"):
+                db_url = db_url.replace("postgres://", "postgresql://", 1)
+            conn = psycopg2.connect(db_url)
+            return conn, False
+        except Exception as e:
+            print(f"PostgreSQL connection via DATABASE_URL failed: {e}. Falling back to SQLite.")
+            USE_SQLITE = True
+            os.makedirs('instance', exist_ok=True)
+            conn = sqlite3.connect('instance/power_analytics.db')
+            return conn, True
+
+    # 2. Try local DB_CONFIG
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         return conn, False
