@@ -121,6 +121,7 @@ Open your browser and navigate to:
 ```text
 http://127.0.0.1:5000/
 ```
+https://electricity-demand-projection-system.onrender.com/
 
 If you are using the clean SQLite database fallback:
 *   Click **Register** to create a test user (e.g., username `demo`, password `12345678`).
